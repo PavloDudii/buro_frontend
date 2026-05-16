@@ -12,11 +12,19 @@ export function Topbar() {
 
   return (
     <header className="topbar">
-      <Link className="topbar-brand" href={auth.user?.role === "admin" ? "/admin/documents" : "/chat"}>
+      <Link
+        className="topbar-brand"
+        href={auth.user?.role === "admin" ? "/admin/documents" : "/chat"}
+      >
         <span className="brand-mark">LP</span>
         <span>
-          <span style={{ display: "block", fontSize: "0.95rem" }}>NULP Assistant</span>
-          <span className="muted" style={{ display: "block", fontSize: "0.78rem", fontWeight: 700 }}>
+          <span style={{ display: "block", fontSize: "0.95rem" }}>
+            Assistant
+          </span>
+          <span
+            className="muted"
+            style={{ display: "block", fontSize: "0.78rem", fontWeight: 700 }}
+          >
             Bureau documents
           </span>
         </span>

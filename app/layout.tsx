@@ -3,7 +3,7 @@ import "./globals.css";
 import { Providers } from "@/components/providers";
 
 export const metadata: Metadata = {
-  title: "NULP Bureaucratic Assistant",
+  title: "Bureaucratic Assistant",
   description: "Document-backed assistant for university bureaucracy.",
 };
 
