@@ -22,11 +22,30 @@ import type {
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000/api/v1";
 
+type Refresher = () => Promise<string>;
+let _refresher: Refresher | null = null;
+let _refreshPromise: Promise<string> | null = null;
+
+export function setRefresher(fn: Refresher | null): void {
+  _refresher = fn;
+  _refreshPromise = null;
+}
+
+async function tryRefresh(): Promise<string> {
+  if (!_refreshPromise) {
+    _refreshPromise = _refresher!().finally(() => {
+      _refreshPromise = null;
+    });
+  }
+  return _refreshPromise;
+}
+
 type ApiOptions = {
   method?: string;
   token?: string | null;
   body?: unknown;
   signal?: AbortSignal;
+  _isRetry?: boolean;
 };
 
 export class ApiError extends Error {
@@ -55,6 +74,14 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}): Promi
   });
 
   if (!response.ok) {
+    if (response.status === 401 && _refresher && !options._isRetry) {
+      try {
+        const newToken = await tryRefresh();
+        return apiFetch<T>(path, { ...options, token: newToken, _isRetry: true });
+      } catch {
+        // refresh failed — fall through and throw original error
+      }
+    }
     let message = response.statusText;
     try {
       const payload = (await response.json()) as { detail?: string; error?: { message?: string } };

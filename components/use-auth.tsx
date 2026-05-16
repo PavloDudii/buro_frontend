@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { getMe, login as loginRequest, refresh as refreshRequest, register as registerRequest } from "@/lib/api";
+import { getMe, login as loginRequest, refresh as refreshRequest, register as registerRequest, setRefresher } from "@/lib/api";
 import type { AuthResponse, User } from "@/lib/types";
 
 type AuthState = {
@@ -21,6 +21,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    setRefresher(async () => {
+      const rt = sessionStorage.getItem(REFRESH_KEY);
+      if (!rt) throw new Error("No refresh token");
+      const auth = await refreshRequest(rt);
+      sessionStorage.setItem(REFRESH_KEY, auth.refresh_token);
+      setAccessToken(auth.access_token);
+      setUser(auth.user);
+      return auth.access_token;
+    });
+    return () => setRefresher(null);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     let cancelled = false;
